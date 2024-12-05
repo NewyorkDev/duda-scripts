@@ -1,7 +1,7 @@
 // script.js
 
 // Log to confirm script is loaded
-console.log('Custom script loaded successfully.');
+console.log('Script loaded successfully.');
 
 // Persist orderCount across visits
 var storedCount = localStorage.getItem('orderCount');
@@ -57,14 +57,20 @@ console.log(`Final orderCount to display: ${orderCount}`);
 localStorage.setItem('orderCount', orderCount);
 localStorage.setItem('lastVisit', todayStr);
 
-// Update the order count in the HTML
-var orderCountElement = document.getElementById('customOrderCount');
-if (orderCountElement) {
-  orderCountElement.textContent = orderCount;
-  console.log('Order count updated in HTML.');
-} else {
-  console.error('Element with id "customOrderCount" not found.');
+// Function to update the order count in the HTML
+function updateOrderCount() {
+  var orderCountElement = document.getElementById('orderCount');
+  if (orderCountElement) {
+    orderCountElement.textContent = orderCount;
+    console.log('Order count updated in HTML.');
+    clearInterval(checkExist);
+  } else {
+    console.log('Element with id "orderCount" not found. Retrying in 1 second.');
+  }
 }
+
+// Check every second for the existence of the element
+var checkExist = setInterval(updateOrderCount, 1000);
 
 // Optional: Make snowflakes reappear from the top after they fall
 var snowflakes = document.getElementsByClassName('snowflake');
@@ -105,8 +111,8 @@ var orderLocations = [
 var popupCount = 0;
 
 function showPopup() {
-  var popup = document.getElementById('customPopup');
-  var popupMessage = document.getElementById('customPopupMessage');
+  var popup = document.getElementById('popup');
+  var popupMessage = document.getElementById('popupMessage');
 
   if (!popup || !popupMessage) {
     console.error('Popup elements not found.');
