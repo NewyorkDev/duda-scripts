@@ -12,44 +12,12 @@ function getTodayStr() {
   return year + '-' + month + '-' + day; // e.g., "2024-12-05"
 }
 
-// Function to initialize or update order count
+// Function to initialize order count
 function initializeOrderCount() {
-  var storedCount = localStorage.getItem('orderCount');
-  var lastVisit = localStorage.getItem('lastVisit');
-  var todayStr = getTodayStr();
-
-  var initialOrders = 3; // Starting with 3 orders
-  var maxOrdersPerDay = 10; // Maximum 10 orders per day
-
-  if (lastVisit === todayStr) {
-    // If already visited today, retain the stored count
-    var orderCount = parseInt(storedCount, 10);
-    if (isNaN(orderCount)) {
-      orderCount = initialOrders;
-      localStorage.setItem('orderCount', orderCount);
-      console.log('Invalid stored count. Resetting to initial orders:', orderCount);
-    } else {
-      console.log('Returning order count for today:', orderCount);
-    }
-    return orderCount;
-  } else {
-    // If it's a new day, reset or increment the count
-    var orderCount = initialOrders;
-    if (storedCount) {
-      // Increment by a random number to simulate real orders, ensuring it doesn't exceed maxOrdersPerDay
-      var increment = Math.floor(Math.random() * 3) + 1; // Increment by 1 to 3
-      orderCount = Math.min(parseInt(storedCount, 10) + increment, maxOrdersPerDay);
-      console.log('New day detected. Incrementing order count to:', orderCount);
-    } else {
-      console.log('First-time visit. Setting order count to:', orderCount);
-    }
-
-    // Update localStorage
-    localStorage.setItem('orderCount', orderCount);
-    localStorage.setItem('lastVisit', todayStr);
-
-    return orderCount;
-  }
+  // Start from 0 for simulation
+  var orderCount = 0;
+  console.log('Initializing order count to:', orderCount);
+  return orderCount;
 }
 
 // Function to update the order count in the HTML with animation
@@ -88,8 +56,10 @@ function appendOrderMessage(location) {
       ordersList.removeChild(ordersList.lastChild);
     }
 
-    // Show the recent orders section
-    recentOrdersSection.classList.add('active');
+    // Show the recent orders section if not already visible
+    if (!recentOrdersSection.classList.contains('active')) {
+      recentOrdersSection.classList.add('active');
+    }
   } else {
     console.error('Recent Orders elements not found.');
   }
@@ -125,17 +95,28 @@ function getRandomLocation() {
   return orderLocations[Math.floor(Math.random() * orderLocations.length)];
 }
 
-// Function to simulate new orders (Optional)
-function simulateNewOrders(currentCount, maxOrders) {
-  if (currentCount < maxOrders) {
+// Function to simulate new orders at random intervals
+function simulateLiveOrders(currentCount, maxOrders) {
+  if (currentCount >= maxOrders) {
+    console.log('Maximum orders reached for today.');
+    return;
+  }
+
+  // Define the range for random intervals (e.g., 5 to 30 seconds)
+  var minInterval = 5000; // 5 seconds
+  var maxInterval = 30000; // 30 seconds
+  var nextOrderIn = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
+
+  setTimeout(function() {
+    // Increment order count
     var newCount = currentCount + 1;
-    localStorage.setItem('orderCount', newCount);
     updateOrderCountDisplay(newCount);
     appendOrderMessage(getRandomLocation());
     console.log('Simulated new order. Total orders today:', newCount);
-  } else {
-    console.log('Maximum orders reached for today.');
-  }
+
+    // Continue simulation
+    simulateLiveOrders(newCount, maxOrders);
+  }, nextOrderIn);
 }
 
 // Initialize and update order count after DOM is loaded
@@ -143,26 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
   var orderCount = initializeOrderCount();
   updateOrderCountDisplay(orderCount);
 
-  // Simulate existing orders based on the current order count
-  for (var i = 0; i < orderCount; i++) {
-    appendOrderMessage(getRandomLocation());
-  }
-
-  // Optional: Automate new order simulation throughout the day
-  // For demonstration, simulate a new order every hour (3600000 ms)
-  // You can adjust the interval as needed
-  /*
-  setInterval(function() {
-    var currentCount = parseInt(localStorage.getItem('orderCount'), 10);
-    if (currentCount < 10) {
-      var newCount = currentCount + 1;
-      localStorage.setItem('orderCount', newCount);
-      updateOrderCountDisplay(newCount);
-      appendOrderMessage(getRandomLocation());
-      console.log('Simulated new order. Total orders today:', newCount);
-    } else {
-      console.log('Maximum orders reached for today.');
-    }
-  }, 3600000); // Every hour
-  */
+  // Start simulating live orders
+  var maxOrdersPerDay = 10; // Set maximum number of simulated orders per day
+  simulateLiveOrders(orderCount, maxOrdersPerDay);
 });
