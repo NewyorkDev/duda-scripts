@@ -3,10 +3,13 @@
 // Log to confirm script is loaded
 console.log('Script loaded successfully.');
 
-// Function to get today's date string
+// Function to get today's date string in YYYY-MM-DD format for consistency
 function getTodayStr() {
   var today = new Date();
-  return today.toDateString(); // e.g., "Thu Dec 05 2024"
+  var year = today.getFullYear();
+  var month = String(today.getMonth() + 1).padStart(2, '0');
+  var day = String(today.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day; // e.g., "2024-12-05"
 }
 
 // Function to initialize or update order count
@@ -21,7 +24,13 @@ function initializeOrderCount() {
   if (lastVisit === todayStr) {
     // If already visited today, retain the stored count
     var orderCount = parseInt(storedCount, 10);
-    console.log('Returning order count for today:', orderCount);
+    if (isNaN(orderCount)) {
+      orderCount = initialOrders;
+      localStorage.setItem('orderCount', orderCount);
+      console.log('Invalid stored count. Resetting to initial orders:', orderCount);
+    } else {
+      console.log('Returning order count for today:', orderCount);
+    }
     return orderCount;
   } else {
     // If it's a new day, reset or increment the count
@@ -114,6 +123,19 @@ function getRandomLocation() {
   ];
 
   return orderLocations[Math.floor(Math.random() * orderLocations.length)];
+}
+
+// Function to simulate new orders (Optional)
+function simulateNewOrders(currentCount, maxOrders) {
+  if (currentCount < maxOrders) {
+    var newCount = currentCount + 1;
+    localStorage.setItem('orderCount', newCount);
+    updateOrderCountDisplay(newCount);
+    appendOrderMessage(getRandomLocation());
+    console.log('Simulated new order. Total orders today:', newCount);
+  } else {
+    console.log('Maximum orders reached for today.');
+  }
 }
 
 // Initialize and update order count after DOM is loaded
