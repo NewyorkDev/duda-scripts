@@ -10,20 +10,33 @@ var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
 // Simulate order count increasing as Christmas approaches
 var maxOrders = 1000;
-var minOrders = 100;
+var minOrders = 2; // Starting at 2 instead of 100
 var totalDays = 60; // Adjust this value as needed
 
 var orderCount;
 
+// Ensure diffDays does not exceed totalDays to prevent negative or excessive counts
 if (diffDays > totalDays) {
   orderCount = minOrders;
+} else if (diffDays <= 0) {
+  orderCount = maxOrders;
 } else {
-  orderCount = Math.floor(
-    minOrders + ((maxOrders - minOrders) * (totalDays - diffDays)) / totalDays
-  );
+  // Calculate orderCount based on remaining days
+  orderCount = minOrders + Math.floor(((totalDays - diffDays) / totalDays) * (maxOrders - minOrders));
 }
 
-document.getElementById('orderCount').textContent = orderCount;
+// Ensure orderCount is at least minOrders
+if (orderCount < minOrders) {
+  orderCount = minOrders;
+}
+
+// Update the order count in the HTML
+var orderCountElement = document.getElementById('orderCount');
+if (orderCountElement) {
+  orderCountElement.textContent = orderCount;
+} else {
+  console.error('Element with id "orderCount" not found.');
+}
 
 // Optional: Make snowflakes reappear from the top after they fall
 var snowflakes = document.getElementsByClassName('snowflake');
@@ -66,6 +79,11 @@ var popupCount = 0;
 function showPopup() {
   var popup = document.getElementById('popup');
   var popupMessage = document.getElementById('popupMessage');
+
+  if (!popup || !popupMessage) {
+    console.error('Popup elements not found.');
+    return;
+  }
 
   // Select a random location
   var location = orderLocations[Math.floor(Math.random() * orderLocations.length)];
