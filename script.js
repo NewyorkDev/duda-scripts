@@ -1,14 +1,14 @@
 // script.js
 
-// Add a console log to confirm the script is loaded
-console.log('Script loaded successfully.');
+// Log to confirm script is loaded
+console.log('Custom script loaded successfully.');
 
 // Persist orderCount across visits
 var storedCount = localStorage.getItem('orderCount');
 var lastVisit = localStorage.getItem('lastVisit');
 
 var today = new Date();
-var todayStr = today.toDateString(); // e.g., "Mon Oct 16 2023"
+var todayStr = today.toDateString(); // e.g., "Thu Dec 05 2024"
 
 // Calculate days until Christmas
 var year = today.getFullYear();
@@ -58,12 +58,12 @@ localStorage.setItem('orderCount', orderCount);
 localStorage.setItem('lastVisit', todayStr);
 
 // Update the order count in the HTML
-var orderCountElement = document.getElementById('orderCount');
+var orderCountElement = document.getElementById('customOrderCount');
 if (orderCountElement) {
   orderCountElement.textContent = orderCount;
   console.log('Order count updated in HTML.');
 } else {
-  console.error('Element with id "orderCount" not found.');
+  console.error('Element with id "customOrderCount" not found.');
 }
 
 // Optional: Make snowflakes reappear from the top after they fall
@@ -105,8 +105,8 @@ var orderLocations = [
 var popupCount = 0;
 
 function showPopup() {
-  var popup = document.getElementById('popup');
-  var popupMessage = document.getElementById('popupMessage');
+  var popup = document.getElementById('customPopup');
+  var popupMessage = document.getElementById('customPopupMessage');
 
   if (!popup || !popupMessage) {
     console.error('Popup elements not found.');
@@ -143,7 +143,7 @@ function showPopup() {
   // Schedule the next popup
   var nextInterval;
   if (popupCount < 3) {
-    nextInterval = 5000; // Every 5 seconds for testing
+    nextInterval = 60000; // Every 1 minute
   } else if (popupCount < 5) {
     nextInterval = 120000; // Every 2 minutes
   } else if (popupCount < 10) {
@@ -156,5 +156,5 @@ function showPopup() {
   setTimeout(showPopup, nextInterval);
 }
 
-// Start the first popup after 5 seconds for testing
-setTimeout(showPopup, 5000);
+// Start the first popup after 1 minute
+setTimeout(showPopup, 60000);
