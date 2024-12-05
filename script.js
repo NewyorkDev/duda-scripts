@@ -1,5 +1,16 @@
-// Calculate days until Christmas
+// script.js
+
+// Add a console log to confirm the script is loaded
+console.log('Script loaded successfully.');
+
+// Persist orderCount across visits
+var storedCount = localStorage.getItem('orderCount');
+var lastVisit = localStorage.getItem('lastVisit');
+
 var today = new Date();
+var todayStr = today.toDateString(); // e.g., "Mon Oct 16 2023"
+
+// Calculate days until Christmas
 var year = today.getFullYear();
 var christmas = new Date(year, 11, 25); // Months are zero-indexed (11 = December)
 if (today > christmas) {
@@ -8,14 +19,16 @@ if (today > christmas) {
 var diffTime = christmas - today; // Difference in milliseconds
 var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+console.log(`Days until Christmas: ${diffDays}`);
+
 // Simulate order count increasing as Christmas approaches
 var maxOrders = 1000;
-var minOrders = 2; // Starting at 2 instead of 100
+var minOrders = 2; // Starting at 2
 var totalDays = 60; // Adjust this value as needed
 
 var orderCount;
 
-// Ensure diffDays does not exceed totalDays to prevent negative or excessive counts
+// Calculate initial orderCount based on days until Christmas
 if (diffDays > totalDays) {
   orderCount = minOrders;
 } else if (diffDays <= 0) {
@@ -25,15 +38,30 @@ if (diffDays > totalDays) {
   orderCount = minOrders + Math.floor(((totalDays - diffDays) / totalDays) * (maxOrders - minOrders));
 }
 
-// Ensure orderCount is at least minOrders
-if (orderCount < minOrders) {
-  orderCount = minOrders;
+console.log(`Calculated orderCount before increment: ${orderCount}`);
+
+// Increment orderCount if a new day has started
+if (storedCount && lastVisit !== todayStr) {
+  orderCount = Math.min(parseInt(storedCount, 10) + 1, maxOrders);
+  console.log(`Incremented orderCount to: ${orderCount}`);
+} else {
+  console.log('No increment needed for orderCount.');
 }
+
+// Ensure orderCount is at least minOrders
+orderCount = Math.max(orderCount, minOrders);
+
+console.log(`Final orderCount to display: ${orderCount}`);
+
+// Update localStorage
+localStorage.setItem('orderCount', orderCount);
+localStorage.setItem('lastVisit', todayStr);
 
 // Update the order count in the HTML
 var orderCountElement = document.getElementById('orderCount');
 if (orderCountElement) {
   orderCountElement.textContent = orderCount;
+  console.log('Order count updated in HTML.');
 } else {
   console.error('Element with id "orderCount" not found.');
 }
@@ -95,6 +123,8 @@ function showPopup() {
     popupMessage.innerHTML = '🛒 New Order from ' + location;
   }
 
+  console.log(`Displaying popup: ${popupMessage.innerHTML}`);
+
   // Show the popup
   popup.style.display = 'block';
   popup.style.animation = 'slideIn 0.5s forwards';
@@ -104,6 +134,7 @@ function showPopup() {
     popup.style.animation = 'slideOut 0.5s forwards';
     setTimeout(function() {
       popup.style.display = 'none';
+      console.log('Popup hidden.');
     }, 500);
   }, 5000);
 
@@ -112,17 +143,18 @@ function showPopup() {
   // Schedule the next popup
   var nextInterval;
   if (popupCount < 3) {
-    nextInterval = 60000; // Every 1 minute
+    nextInterval = 5000; // Every 5 seconds for testing
   } else if (popupCount < 5) {
     nextInterval = 120000; // Every 2 minutes
   } else if (popupCount < 10) {
     nextInterval = 300000; // Every 5 minutes
   } else {
+    console.log('Reached maximum number of popups.');
     return; // Stop after 10 pop-ups
   }
 
   setTimeout(showPopup, nextInterval);
 }
 
-// Start the first popup after 1 minute
-setTimeout(showPopup, 60000);
+// Start the first popup after 5 seconds for testing
+setTimeout(showPopup, 5000);
