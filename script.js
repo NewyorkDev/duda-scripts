@@ -43,7 +43,7 @@ function initializeOrderCount() {
   }
 }
 
-// Function to update the order count in the HTML
+// Function to update the order count in the HTML with animation
 function updateOrderCountDisplay(orderCount) {
   var orderCountElement = document.getElementById('orderCount');
   if (orderCountElement) {
@@ -71,7 +71,7 @@ function appendOrderMessage(location) {
     var li = document.createElement('li');
     li.textContent = '🛒 New Order from ' + location;
 
-    // Append the new order message
+    // Append the new order message at the top
     ordersList.insertBefore(li, ordersList.firstChild); // Newest orders at the top
 
     // Limit to latest 10 orders
@@ -86,8 +86,8 @@ function appendOrderMessage(location) {
   }
 }
 
-// Function to simulate receiving a new order
-function simulateNewOrder() {
+// Function to get a random location
+function getRandomLocation() {
   var orderLocations = [
     'Houston, Texas 77018',
     'Tuttle, Oklahoma 73089',
@@ -113,11 +113,7 @@ function simulateNewOrder() {
     'San Diego, California 92101'
   ];
 
-  // Select a random location
-  var location = orderLocations[Math.floor(Math.random() * orderLocations.length)];
-
-  // Append the order message
-  appendOrderMessage(location);
+  return orderLocations[Math.floor(Math.random() * orderLocations.length)];
 }
 
 // Initialize and update order count after DOM is loaded
@@ -125,15 +121,14 @@ document.addEventListener("DOMContentLoaded", function() {
   var orderCount = initializeOrderCount();
   updateOrderCountDisplay(orderCount);
 
-  // Simulate receiving new orders based on the current order count
-  // For example, if orderCount is 3, simulate 3 orders
+  // Simulate existing orders based on the current order count
   for (var i = 0; i < orderCount; i++) {
-    simulateNewOrder();
+    appendOrderMessage(getRandomLocation());
   }
 
-  // Optionally, set up a timer to simulate new orders throughout the day
-  // For demonstration, we'll simulate a new order every hour
-  // Adjust the interval as needed (e.g., every minute for testing)
+  // Optional: Automate new order simulation throughout the day
+  // For demonstration, simulate a new order every hour (3600000 ms)
+  // You can adjust the interval as needed
   /*
   setInterval(function() {
     var currentCount = parseInt(localStorage.getItem('orderCount'), 10);
@@ -141,8 +136,11 @@ document.addEventListener("DOMContentLoaded", function() {
       var newCount = currentCount + 1;
       localStorage.setItem('orderCount', newCount);
       updateOrderCountDisplay(newCount);
-      simulateNewOrder();
+      appendOrderMessage(getRandomLocation());
+      console.log('Simulated new order. Total orders today:', newCount);
+    } else {
+      console.log('Maximum orders reached for today.');
     }
-  }, 3600000); // Every hour (3600000 ms)
+  }, 3600000); // Every hour
   */
 });
