@@ -3,164 +3,146 @@
 // Log to confirm script is loaded
 console.log('Script loaded successfully.');
 
-// Persist orderCount across visits
-var storedCount = localStorage.getItem('orderCount');
-var lastVisit = localStorage.getItem('lastVisit');
-
-var today = new Date();
-var todayStr = today.toDateString(); // e.g., "Thu Dec 05 2024"
-
-// Calculate days until Christmas
-var year = today.getFullYear();
-var christmas = new Date(year, 11, 25); // Months are zero-indexed (11 = December)
-if (today > christmas) {
-  christmas.setFullYear(year + 1);
-}
-var diffTime = christmas - today; // Difference in milliseconds
-var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-console.log(`Days until Christmas: ${diffDays}`);
-
-// Simulate order count increasing as Christmas approaches
-var maxOrders = 1000;
-var minOrders = 2; // Starting at 2
-var totalDays = 60; // Adjust this value as needed
-
-var orderCount;
-
-// Calculate initial orderCount based on days until Christmas
-if (diffDays > totalDays) {
-  orderCount = minOrders;
-} else if (diffDays <= 0) {
-  orderCount = maxOrders;
-} else {
-  // Calculate orderCount based on remaining days
-  orderCount = minOrders + Math.floor(((totalDays - diffDays) / totalDays) * (maxOrders - minOrders));
+// Function to get today's date string
+function getTodayStr() {
+  var today = new Date();
+  return today.toDateString(); // e.g., "Thu Dec 05 2024"
 }
 
-console.log(`Calculated orderCount before increment: ${orderCount}`);
+// Function to initialize or update order count
+function initializeOrderCount() {
+  var storedCount = localStorage.getItem('orderCount');
+  var lastVisit = localStorage.getItem('lastVisit');
+  var todayStr = getTodayStr();
 
-// Increment orderCount if a new day has started
-if (storedCount && lastVisit !== todayStr) {
-  orderCount = Math.min(parseInt(storedCount, 10) + 1, maxOrders);
-  console.log(`Incremented orderCount to: ${orderCount}`);
-} else {
-  console.log('No increment needed for orderCount.');
+  var initialOrders = 3; // Starting with 3 orders
+  var maxOrdersPerDay = 10; // Maximum 10 orders per day
+
+  if (lastVisit === todayStr) {
+    // If already visited today, retain the stored count
+    var orderCount = parseInt(storedCount, 10);
+    console.log('Returning order count for today:', orderCount);
+    return orderCount;
+  } else {
+    // If it's a new day, reset or increment the count
+    var orderCount = initialOrders;
+    if (storedCount) {
+      // Increment by a random number to simulate real orders, ensuring it doesn't exceed maxOrdersPerDay
+      var increment = Math.floor(Math.random() * 3) + 1; // Increment by 1 to 3
+      orderCount = Math.min(parseInt(storedCount, 10) + increment, maxOrdersPerDay);
+      console.log('New day detected. Incrementing order count to:', orderCount);
+    } else {
+      console.log('First-time visit. Setting order count to:', orderCount);
+    }
+
+    // Update localStorage
+    localStorage.setItem('orderCount', orderCount);
+    localStorage.setItem('lastVisit', todayStr);
+
+    return orderCount;
+  }
 }
-
-// Ensure orderCount is at least minOrders
-orderCount = Math.max(orderCount, minOrders);
-
-console.log(`Final orderCount to display: ${orderCount}`);
-
-// Update localStorage
-localStorage.setItem('orderCount', orderCount);
-localStorage.setItem('lastVisit', todayStr);
 
 // Function to update the order count in the HTML
-function updateOrderCount() {
+function updateOrderCountDisplay(orderCount) {
   var orderCountElement = document.getElementById('orderCount');
   if (orderCountElement) {
-    orderCountElement.textContent = orderCount;
-    console.log('Order count updated in HTML.');
-    clearInterval(checkExist);
+    // Add class to trigger animation
+    orderCountElement.classList.add('updating');
+
+    // Update the text after a short delay to allow animation
+    setTimeout(function() {
+      orderCountElement.textContent = orderCount;
+      orderCountElement.classList.remove('updating');
+      console.log('Order count updated in HTML:', orderCount);
+    }, 300); // Adjust the delay as needed
   } else {
-    console.log('Element with id "orderCount" not found. Retrying in 1 second.');
+    console.error('Element with id "orderCount" not found.');
   }
 }
 
-// Check every second for the existence of the element
-var checkExist = setInterval(updateOrderCount, 1000);
+// Function to append a new order message to the recent orders list
+function appendOrderMessage(location) {
+  var ordersList = document.getElementById('ordersList');
+  var recentOrdersSection = document.getElementById('recentOrders');
 
-// Optional: Make snowflakes reappear from the top after they fall
-var snowflakes = document.getElementsByClassName('snowflake');
-for (var i = 0; i < snowflakes.length; i++) {
-  snowflakes[i].addEventListener('animationiteration', function() {
-    this.style.left = Math.random() * 100 + '%';
-    this.style.fontSize = (Math.random() * 10 + 15) + 'px';
-    this.style.animationDuration = (Math.random() * 5 + 7) + 's';
-  });
+  if (ordersList && recentOrdersSection) {
+    // Create a new list item
+    var li = document.createElement('li');
+    li.textContent = '🛒 New Order from ' + location;
+
+    // Append the new order message
+    ordersList.insertBefore(li, ordersList.firstChild); // Newest orders at the top
+
+    // Limit to latest 10 orders
+    while (ordersList.children.length > 10) {
+      ordersList.removeChild(ordersList.lastChild);
+    }
+
+    // Show the recent orders section
+    recentOrdersSection.classList.add('active');
+  } else {
+    console.error('Recent Orders elements not found.');
+  }
 }
 
-// Popup Notifications
-var orderLocations = [
-  'Houston, Texas 77018',
-  'Tuttle, Oklahoma 73089',
-  'San Antonio, Texas 78210',
-  'Bells, Texas 75414',
-  'Corinth, Texas 76210',
-  'Haltom City, Texas 76137',
-  'Arlington, Texas 76001',
-  'Fort Worth, Texas 76116',
-  'San Antonio, Texas 78209',
-  'San Antonio, Texas 78232',
-  'Waco, Texas 76798-2852',
-  'Austin, Texas 73301',
-  'Dallas, Texas 75201',
-  'El Paso, Texas 79901',
-  'Lubbock, Texas 79401',
-  'Amarillo, Texas 79101',
-  'Tulsa, Oklahoma 74101',
-  'Baton Rouge, Louisiana 70801',
-  'Little Rock, Arkansas 72201',
-  'Albuquerque, New Mexico 87101',
-  'Los Angeles, California 90001',
-  'San Diego, California 92101'
-];
-
-var popupCount = 0;
-
-function showPopup() {
-  var popup = document.getElementById('popup');
-  var popupMessage = document.getElementById('popupMessage');
-
-  if (!popup || !popupMessage) {
-    console.error('Popup elements not found.');
-    return;
-  }
+// Function to simulate receiving a new order
+function simulateNewOrder() {
+  var orderLocations = [
+    'Houston, Texas 77018',
+    'Tuttle, Oklahoma 73089',
+    'San Antonio, Texas 78210',
+    'Bells, Texas 75414',
+    'Corinth, Texas 76210',
+    'Haltom City, Texas 76137',
+    'Arlington, Texas 76001',
+    'Fort Worth, Texas 76116',
+    'San Antonio, Texas 78209',
+    'San Antonio, Texas 78232',
+    'Waco, Texas 76798-2852',
+    'Austin, Texas 73301',
+    'Dallas, Texas 75201',
+    'El Paso, Texas 79901',
+    'Lubbock, Texas 79401',
+    'Amarillo, Texas 79101',
+    'Tulsa, Oklahoma 74101',
+    'Baton Rouge, Louisiana 70801',
+    'Little Rock, Arkansas 72201',
+    'Albuquerque, New Mexico 87101',
+    'Los Angeles, California 90001',
+    'San Diego, California 92101'
+  ];
 
   // Select a random location
   var location = orderLocations[Math.floor(Math.random() * orderLocations.length)];
 
-  // Determine the message
-  if (popupCount >= 3) {
-    popupMessage.innerHTML = '🔥 Hot Product! Many are ordering now!';
-  } else {
-    popupMessage.innerHTML = '🛒 New Order from ' + location;
-  }
-
-  console.log(`Displaying popup: ${popupMessage.innerHTML}`);
-
-  // Show the popup
-  popup.style.display = 'block';
-  popup.style.animation = 'slideIn 0.5s forwards';
-
-  // Hide the popup after 5 seconds
-  setTimeout(function() {
-    popup.style.animation = 'slideOut 0.5s forwards';
-    setTimeout(function() {
-      popup.style.display = 'none';
-      console.log('Popup hidden.');
-    }, 500);
-  }, 5000);
-
-  popupCount++;
-
-  // Schedule the next popup
-  var nextInterval;
-  if (popupCount < 3) {
-    nextInterval = 60000; // Every 1 minute
-  } else if (popupCount < 5) {
-    nextInterval = 120000; // Every 2 minutes
-  } else if (popupCount < 10) {
-    nextInterval = 300000; // Every 5 minutes
-  } else {
-    console.log('Reached maximum number of popups.');
-    return; // Stop after 10 pop-ups
-  }
-
-  setTimeout(showPopup, nextInterval);
+  // Append the order message
+  appendOrderMessage(location);
 }
 
-// Start the first popup after 1 minute
-setTimeout(showPopup, 60000);
+// Initialize and update order count after DOM is loaded
+document.addEventListener("DOMContentLoaded", function() {
+  var orderCount = initializeOrderCount();
+  updateOrderCountDisplay(orderCount);
+
+  // Simulate receiving new orders based on the current order count
+  // For example, if orderCount is 3, simulate 3 orders
+  for (var i = 0; i < orderCount; i++) {
+    simulateNewOrder();
+  }
+
+  // Optionally, set up a timer to simulate new orders throughout the day
+  // For demonstration, we'll simulate a new order every hour
+  // Adjust the interval as needed (e.g., every minute for testing)
+  /*
+  setInterval(function() {
+    var currentCount = parseInt(localStorage.getItem('orderCount'), 10);
+    if (currentCount < 10) {
+      var newCount = currentCount + 1;
+      localStorage.setItem('orderCount', newCount);
+      updateOrderCountDisplay(newCount);
+      simulateNewOrder();
+    }
+  }, 3600000); // Every hour (3600000 ms)
+  */
+});
